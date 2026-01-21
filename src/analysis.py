@@ -267,13 +267,69 @@ def calculate_risk_metrics(df: pd.DataFrame) -> pd.DataFrame:
     
     return df_with_pop
 
+# ===== STEP 5: SUMMARY STATISTICS =====
+
+def generate_summary_stats(df: pd.DataFrame) -> dict:
+    """
+    Generate global summary statistics from COVID-19 data.
+    
+    Args:
+        df: COVID-19 DataFrame (raw data, not aggregated)
+        
+    Returns:
+        Dictionary containing global statistics
+        
+    Example:
+        >>> stats = generate_summary_stats(df)
+        >>> print(stats['total_cases'])
+        100,000,000
+    """
+    print("\n--- Generating Summary Statistics ---")
+    
+    # Calculate global totals
+    stats = {
+        'total_cases': int(df['Confirmed'].sum()),
+        'total_deaths': int(df['Deaths'].sum()),
+        'total_recovered': int(df['Recovered'].sum()) if 'Recovered' in df.columns else 0,
+    }
+    
+    # Get unique country count
+    country_col = 'Country/Region' if 'Country/Region' in df.columns else 'Country'
+    stats['countries_affected'] = df[country_col].nunique()
+    
+    # Calculate averages per country
+    stats['avg_cases_per_country'] = int(df.groupby(country_col)['Confirmed'].sum().mean())
+    stats['avg_deaths_per_country'] = int(df.groupby(country_col)['Deaths'].sum().mean())
+    
+    # Calculate case fatality rate
+    stats['case_fatality_rate'] = (stats['total_deaths'] / stats['total_cases'] * 100) if stats['total_cases'] > 0 else 0
+    
+    # Get date range
+    stats['latest_date'] = df['Date'].max()
+    stats['earliest_date'] = df['Date'].min()
+    stats['data_span_days'] = (pd.to_datetime(stats['latest_date']) - pd.to_datetime(stats['earliest_date'])).days
+    
+    # Print summary
+    print(f"\nGlobal Summary Statistics:")
+    print(f"   Total Cases: {stats['total_cases']:,}")
+    print(f"   Total Deaths: {stats['total_deaths']:,}")
+    print(f"   Total Recovered: {stats['total_recovered']:,}")
+    print(f"   Countries Affected: {stats['countries_affected']}")
+    print(f"   Average Cases per Country: {stats['avg_cases_per_country']:,}")
+    print(f"   Average Deaths per Country: {stats['avg_deaths_per_country']:,}")
+    print(f"   Case Fatality Rate: {stats['case_fatality_rate']:.2f}%")
+    print(f"   Data Span: {stats['earliest_date']} to {stats['latest_date']} ({stats['data_span_days']} days)")
+    
+    return stats
+
+
 
 # ===== TESTING FUNCTIONS =====
 
 if __name__ == "__main__":
-    """Test data loading, cleaning, filtering, aggregation, and risk metrics."""
+    """Test data loading, cleaning, filtering, aggregation, risk metrics, and summary stats."""
     print("="*60)
-    print("COVID-19 DATA ANALYSIS - STEP 4: RISK METRICS")
+    print("COVID-19 DATA ANALYSIS - STEP 5: SUMMARY STATS")
     print("="*60 + "\n")
     
     # Load and clean data
@@ -288,15 +344,16 @@ if __name__ == "__main__":
     print("\n" + "="*60)
     risk_df = calculate_risk_metrics(country_summary)
     
-    # Show high-risk countries
-    print("\nHigh-Risk Countries (>50,000 cases per million):")
-    high_risk_countries = risk_df[risk_df['high_risk'] == True]
-    print(high_risk_countries[['Country', 'cases_per_million', 'deaths_per_million']].head(10).to_string(index=False))
+    # Generate summary statistics
+    print("\n" + "="*60)
+    summary_stats = generate_summary_stats(df)
     
-    # Show all countries with metrics
-    print("\nAll Countries with Risk Metrics:")
-    print(risk_df[['Country', 'total_confirmed', 'cases_per_million', 'deaths_per_million', 'high_risk']].head(15).to_string(index=False))
+    # Access individual stats (example)
+    print(f"\nKey Insight:")
+    print(f"   With a {summary_stats['case_fatality_rate']:.2f}% fatality rate across")
+    print(f"   {summary_stats['countries_affected']} countries, COVID-19 has been")
+    print(f"   a global pandemic affecting {summary_stats['total_cases']:,} people.")
     
     print("\n" + "="*60)
-    print("STEP 4 COMPLETE ✅")
+    print("STEP 5 COMPLETE ✅")
     print("="*60)
