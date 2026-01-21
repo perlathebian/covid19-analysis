@@ -164,29 +164,69 @@ def filter_high_cases(df: pd.DataFrame, threshold: int = 10000) -> pd.DataFrame:
     return high_cases_df
 
 
+# ===== STEP 3: AGGREGATION =====
+
+def aggregate_by_country(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Calculate total cases, deaths, and statistics per country.
+    
+    Args:
+        df: COVID-19 DataFrame
+        
+    Returns:
+        DataFrame with aggregated country-level statistics, sorted by total cases
+        
+    Example:
+        >>> agg_df = aggregate_by_country(df)
+        >>> print(agg_df.head())
+           Country  total_confirmed  total_deaths  avg_daily_cases
+        0       US       45,231,123     1,234,567           28,456
+    """
+    country_col = 'Country/Region' if 'Country/Region' in df.columns else 'Country'
+    
+    print("\n--- Aggregating by Country ---")
+    
+    agg_df = df.groupby(country_col).agg(
+        total_confirmed=('Confirmed', 'sum'),
+        total_deaths=('Deaths', 'sum'),
+        total_recovered=('Recovered', 'sum') if 'Recovered' in df.columns else ('Confirmed', lambda x: 0),
+        avg_daily_cases=('Confirmed', 'mean'),
+        max_daily_cases=('Confirmed', 'max'),
+        num_records=('Confirmed', 'count')
+    ).reset_index()
+    
+    # Rename country column to standard name
+    agg_df = agg_df.rename(columns={country_col: 'Country'})
+    
+    # Sort by total confirmed cases
+    agg_df = agg_df.sort_values('total_confirmed', ascending=False).reset_index(drop=True)
+    
+    print(f"Aggregated data for {len(agg_df)} countries")
+    print(f"   Global total cases: {agg_df['total_confirmed'].sum():,}")
+    print(f"   Global total deaths: {agg_df['total_deaths'].sum():,}")
+    
+    return agg_df
 
 # ===== TESTING FUNCTIONS =====
 
 if __name__ == "__main__":
-    """Test data loading, cleaning, and filtering."""
+    """Test data loading, cleaning, filtering, and aggregation."""
     print("="*60)
-    print("COVID-19 DATA ANALYSIS - STEP 2: FILTERING")
+    print("COVID-19 DATA ANALYSIS - STEP 3: AGGREGATION")
     print("="*60 + "\n")
     
     # Load and clean data
     df = load_data()
     df = clean_data(df)
     
-    # Test filtering by country
-    print("\n--- Testing Country Filter ---")
-    india_df = filter_country(df, 'India')
-    us_df = filter_country(df, 'US')
+    # Aggregate by country
+    print("\n" + "="*60)
+    country_summary = aggregate_by_country(df)
     
-    # Test high cases filter
-    print("\n--- Testing High Cases Filter ---")
-    high_cases = filter_high_cases(df, threshold=10000)
-    very_high_cases = filter_high_cases(df, threshold=100000)
+    # Show top 10 countries
+    print("\nTop 10 Countries by Total Cases:")
+    print(country_summary[['Country', 'total_confirmed', 'total_deaths', 'avg_daily_cases']].head(10).to_string(index=False))
     
     print("\n" + "="*60)
-    print("STEP 2 COMPLETE ✅")
+    print("STEP 3 COMPLETE ✅")
     print("="*60)
