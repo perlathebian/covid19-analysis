@@ -207,12 +207,73 @@ def aggregate_by_country(df: pd.DataFrame) -> pd.DataFrame:
     
     return agg_df
 
+# ===== STEP 4: RISK METRICS =====
+
+def calculate_risk_metrics(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Calculate per-capita risk metrics for each country.
+    
+    Args:
+        df: Aggregated country-level DataFrame
+        
+    Returns:
+        DataFrame with cases/deaths per million and high_risk flag
+        
+    Example:
+        >>> risk_df = calculate_risk_metrics(agg_df)
+        >>> print(risk_df[['Country', 'cases_per_million', 'high_risk']].head())
+           Country  cases_per_million  high_risk
+        0       US         136,789.5        True
+    """
+    print("\n--- Calculating Risk Metrics ---")
+    
+    # Sample population data (in real analysis, we load from external source)
+    population_data = {
+        'US': 331000000,
+        'India': 1380000000,
+        'Brazil': 212000000,
+        'France': 67000000,
+        'Germany': 83000000,
+        'United Kingdom': 67000000,
+        'Italy': 60000000,
+        'Russia': 144000000,
+        'Spain': 47000000,
+        'Turkey': 84000000,
+        'Iran': 84000000,
+        'Argentina': 45000000,
+        'Colombia': 51000000,
+        'Mexico': 128000000,
+        'Poland': 38000000,
+    }
+    
+    # Add population column
+    df['Population'] = df['Country'].map(population_data)
+    
+    # Calculate per-capita metrics
+    df['cases_per_million'] = (df['total_confirmed'] / df['Population']) * 1_000_000
+    df['deaths_per_million'] = (df['total_deaths'] / df['Population']) * 1_000_000
+    
+    # High risk flag (>50,000 cases per million = >5% of population)
+    df['high_risk'] = df['cases_per_million'] > 50000
+    
+    # Remove countries without population data
+    df_with_pop = df.dropna(subset=['Population']).copy()
+    
+    # Print summary
+    num_high_risk = df_with_pop['high_risk'].sum()
+    print(f"Risk metrics calculated for {len(df_with_pop)} countries")
+    print(f"   Countries with population data: {len(df_with_pop)}/{len(df)}")
+    print(f"   High-risk countries (>50,000 per million): {num_high_risk}")
+    
+    return df_with_pop
+
+
 # ===== TESTING FUNCTIONS =====
 
 if __name__ == "__main__":
-    """Test data loading, cleaning, filtering, and aggregation."""
+    """Test data loading, cleaning, filtering, aggregation, and risk metrics."""
     print("="*60)
-    print("COVID-19 DATA ANALYSIS - STEP 3: AGGREGATION")
+    print("COVID-19 DATA ANALYSIS - STEP 4: RISK METRICS")
     print("="*60 + "\n")
     
     # Load and clean data
@@ -223,10 +284,19 @@ if __name__ == "__main__":
     print("\n" + "="*60)
     country_summary = aggregate_by_country(df)
     
-    # Show top 10 countries
-    print("\nTop 10 Countries by Total Cases:")
-    print(country_summary[['Country', 'total_confirmed', 'total_deaths', 'avg_daily_cases']].head(10).to_string(index=False))
+    # Calculate risk metrics
+    print("\n" + "="*60)
+    risk_df = calculate_risk_metrics(country_summary)
+    
+    # Show high-risk countries
+    print("\nHigh-Risk Countries (>50,000 cases per million):")
+    high_risk_countries = risk_df[risk_df['high_risk'] == True]
+    print(high_risk_countries[['Country', 'cases_per_million', 'deaths_per_million']].head(10).to_string(index=False))
+    
+    # Show all countries with metrics
+    print("\nAll Countries with Risk Metrics:")
+    print(risk_df[['Country', 'total_confirmed', 'cases_per_million', 'deaths_per_million', 'high_risk']].head(15).to_string(index=False))
     
     print("\n" + "="*60)
-    print("STEP 3 COMPLETE ✅")
+    print("STEP 4 COMPLETE ✅")
     print("="*60)
