@@ -26,19 +26,17 @@ This project analyzes COVID-19 data from [Kaggle's COVID-19 Dataset](https://www
 - **Case Fatality Rate:** 5.24%
 - **Data Span:** 2020-01-22 to 2020-07-27 (187 days)
 
-### Top 5 Countries by Total Cases
+## Visualizations
 
-1. **US** - [CASES] cases ([DEATHS] deaths)
-2. **India** - [CASES] cases ([DEATHS] deaths)
-3. **Brazil** - [CASES] cases ([DEATHS] deaths)
-4. **France** - [CASES] cases ([DEATHS] deaths)
-5. **Germany** - [CASES] cases ([DEATHS] deaths)
+### Top 10 Countries by Cases
 
-### Risk Assessment
+![Top Countries](outputs/top_countries.png)
 
-- **High-Risk Countries:** [NUMBER] countries with >50,000 cases per million
-- **Countries with Population Data:** 15 analyzed (out of 190 total)
-- **Per-Capita Leader:** [COUNTRY] with [NUMBER] cases per million
+### Per-Capita Risk Comparison
+
+![Risk Comparison](outputs/risk_comparison.png)
+
+_Charts generated with Matplotlib showing COVID-19 impact across countries_
 
 _Full results available in `outputs/` folder_
 
@@ -54,7 +52,7 @@ _Full results available in `outputs/` folder_
 - [x] Risk metric calculations (15 countries with population data)
 - [x] Summary statistics generation
 - [x] Automated data pipeline
-- [ ] Visualizations (in progress - Step 8)
+- [x] Visualizations
 
 ---
 
