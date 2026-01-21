@@ -324,36 +324,98 @@ def generate_summary_stats(df: pd.DataFrame) -> dict:
 
 
 
-# ===== TESTING FUNCTIONS =====
+# ===== STEP 6: SAVING & PIPELINE =====
 
-if __name__ == "__main__":
-    """Test data loading, cleaning, filtering, aggregation, risk metrics, and summary stats."""
-    print("="*60)
-    print("COVID-19 DATA ANALYSIS - STEP 5: SUMMARY STATS")
-    print("="*60 + "\n")
+def save_results(df: pd.DataFrame, filename: str) -> None:
+    """
+    Save DataFrame to CSV file in outputs directory.
     
-    # Load and clean data
+    Args:
+        df: DataFrame to save
+        filename: Name of output file (e.g., 'results.csv')
+        
+    Returns:
+        None (saves file to disk)
+        
+    Example:
+        >>> save_results(country_df, 'country_summary.csv')
+        Saved: outputs/country_summary.csv
+    """
+    filepath = OUTPUTS_DIR / filename
+    df.to_csv(filepath, index=False)
+    print(f"Saved: {filepath}")
+
+
+def main():
+    """
+    Execute complete COVID-19 analysis pipeline.
+    
+    Pipeline steps:
+        1. Load data from CSV
+        2. Clean and prepare data
+        3. Aggregate by country
+        4. Calculate risk metrics
+        5. Generate summary statistics
+        6. Save results to CSV files
+    
+    Outputs:
+        - outputs/country_summary.csv: Country-level statistics
+        - outputs/risk_analysis.csv: Risk metrics and per-capita data
+    """
+    print("="*80)
+    print(" "*20 + "COVID-19 DATA ANALYSIS PIPELINE")
+    print("="*80 + "\n")
+    
+    # Step 1: Load data
+    print("STEP 1: Loading Data")
+    print("-" * 80)
     df = load_data()
-    df = clean_data(df)
     
-    # Aggregate by country
-    print("\n" + "="*60)
-    country_summary = aggregate_by_country(df)
+    # Step 2: Clean data
+    print("\nSTEP 2: Cleaning Data")
+    print("-" * 80)
+    df_clean = clean_data(df)
     
-    # Calculate risk metrics
-    print("\n" + "="*60)
+    # Step 3: Aggregate by country
+    print("\nSTEP 3: Aggregating by Country")
+    print("-" * 80)
+    country_summary = aggregate_by_country(df_clean)
+    
+    # Step 4: Calculate risk metrics
+    print("\nSTEP 4: Calculating Risk Metrics")
+    print("-" * 80)
     risk_df = calculate_risk_metrics(country_summary)
     
-    # Generate summary statistics
-    print("\n" + "="*60)
-    summary_stats = generate_summary_stats(df)
+    # Step 5: Generate summary statistics
+    print("\nSTEP 5: Generating Summary Statistics")
+    print("-" * 80)
+    summary_stats = generate_summary_stats(df_clean)
     
-    # Access individual stats (example)
-    print(f"\nKey Insight:")
-    print(f"   With a {summary_stats['case_fatality_rate']:.2f}% fatality rate across")
-    print(f"   {summary_stats['countries_affected']} countries, COVID-19 has been")
-    print(f"   a global pandemic affecting {summary_stats['total_cases']:,} people.")
+    # Step 6: Save results
+    print("\nSTEP 6: Saving Results")
+    print("-" * 80)
+    save_results(country_summary, 'country_summary.csv')
+    save_results(risk_df, 'risk_analysis.csv')
     
-    print("\n" + "="*60)
-    print("STEP 5 COMPLETE ✅")
-    print("="*60)
+    # Final summary
+    print("\n" + "="*80)
+    print("PIPELINE COMPLETE ✅")
+    print("="*80)
+    print(f"\nSummary:")
+    print(f"   • Analyzed {summary_stats['countries_affected']} countries")
+    print(f"   • Total cases: {summary_stats['total_cases']:,}")
+    print(f"   • Total deaths: {summary_stats['total_deaths']:,}")
+    print(f"   • Case fatality rate: {summary_stats['case_fatality_rate']:.2f}%")
+    print(f"\nOutput Files:")
+    print(f"   • outputs/country_summary.csv")
+    print(f"   • outputs/risk_analysis.csv")
+    print("\n" + "="*80)
+    
+    return summary_stats
+
+
+# ===== MAIN EXECUTION =====
+
+if __name__ == "__main__":
+    """Running complete COVID-19 analysis pipeline."""
+    main()
